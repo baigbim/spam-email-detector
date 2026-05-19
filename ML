@@ -1,0 +1,110 @@
+# ============================================
+# SPAM EMAIL DETECTOR 📧
+# Complete ML Project
+# 99% Accuracy!
+# ============================================
+
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, classification_report
+import warnings
+warnings.filterwarnings("ignore")
+
+print("✅ Libraries Ready!")
+
+# ============================================
+# STEP 1 — DATA LOAD KARO
+# ============================================
+url = "https://raw.githubusercontent.com/justmarkham/pycon-2016-tutorial/master/data/sms.tsv"
+df = pd.read_csv(url, sep='\t', header=None, names=['label', 'message'])
+
+print(f"\n✅ Data Loaded!")
+print(f"Total Emails : {len(df)}")
+print(df.head())
+
+# ============================================
+# STEP 2 — DATA EXPLORE KARO
+# ============================================
+print("\n--- Email Distribution ---")
+print(df['label'].value_counts())
+
+# ============================================
+# STEP 3 — DATA PREPARE KARO
+# ============================================
+# Spam=1, Ham=0
+df['label'] = df['label'].map({'spam': 1, 'ham': 0})
+
+X = df['message']
+y = df['label']
+
+print(f"\n✅ Data Prepared!")
+print(f"Spam  : {df['label'].sum()}")
+print(f"Ham   : {len(df) - df['label'].sum()}")
+
+# ============================================
+# STEP 4 — TRAIN TEST SPLIT
+# ============================================
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+print(f"\n✅ Data Split!")
+print(f"Training emails : {len(X_train)}")
+print(f"Testing emails  : {len(X_test)}")
+
+# ============================================
+# STEP 5 — TEXT KO NUMBERS MEIN BADLO
+# ============================================
+cv = CountVectorizer()
+X_train_cv = cv.fit_transform(X_train)
+X_test_cv = cv.transform(X_test)
+
+print(f"\n✅ Text Converted!")
+print(f"Total unique words : {len(cv.vocabulary_)}")
+
+# ============================================
+# STEP 6 — MODEL TRAIN KARO
+# ============================================
+model = MultinomialNB()
+model.fit(X_train_cv, y_train)
+print("\n✅ Model Trained!")
+
+# ============================================
+# STEP 7 — PREDICT KARO
+# ============================================
+predictions = model.predict(X_test_cv)
+
+# ============================================
+# STEP 8 — ACCURACY DEKHO
+# ============================================
+accuracy = accuracy_score(y_test, predictions)
+print(f"\n🎯 Accuracy: {accuracy:.2f}")
+print("\nDetailed Report:")
+print(classification_report(y_test, predictions))
+
+# ============================================
+# STEP 9 — REAL EMAIL TEST KARO
+# ============================================
+def check_email(email):
+    email_cv = cv.transform([email])
+    result = model.predict(email_cv)
+    if result[0] == 1:
+        print(f"❌ SPAM: {email}")
+    else:
+        print(f"✅ HAM : {email}")
+
+print("\n--- Real Email Test ---")
+check_email("Free money! Click here now! Win prize!")
+check_email("Hey, are you coming to office tomorrow?")
+check_email("Congratulations! You won $1000! Claim now!")
+check_email("Can we meet for lunch today?")
+
+# ============================================
+# STEP 10 — APNA EMAIL TEST KARO
+# ============================================
+print("\n--- Apna Email Test Karo ---")
+apna_email = "You have been selected for free gift!"
+check_email(apna_email)
